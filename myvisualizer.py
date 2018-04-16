@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt #even tho idk about drawing bounding here
 from math import sin, cos
 from matplotlib.widgets import Slider, Button, RadioButtons
 
-hz = 0
-hy = 0
-hx = 0
-theta = 0
+hz = 3
+hy = 10
+hx = 10
+theta = 0.5
 
 '''store video properties in a class to have unified access '''
 class Video_Properties:
@@ -22,25 +22,34 @@ class Video_Properties:
 
 """ proj_func are user defined functions to calculate x' and y' on dataframe """        
 def proj_func_x(x,y,t):
-    global hz, hy, hx, theta
-    xprime = x - t*(hx + (hz+1)*(cos(theta)*x-sin(theta)*y) -x)
+    global hz, hy, hx, theta,my_vid_properties
+    myt = np.where(my_vid_properties.time_range == t)
+    print myt
+    xprime = x - (myt[0][0]+1)*(hx + (hz+1)*(cos(theta)*x-sin(theta)*y) -x) #do x10 to exxag differences in height
+    print xprime
     return xprime
 
 def proj_func_y(x,y,t):
-    global hz, hy, hx, theta
-    yprime = y - t*(hy + (hz+1)*(cos(theta)*x+sin(theta)*y) -y)
+    global hz, hy, hx, theta,my_vid_properties
+    myt = np.where(my_vid_properties.time_range == t)
+    yprime = y - (myt[0][0]+1)*(hy + (hz+1)*(cos(theta)*x+sin(theta)*y) -y)
     return yprime
 
 def display_frames_stack(df,my_vid_properties):
-    global l, ax,fig,hx,hy,theta,hz
+    global hx,hy,theta,hz
     mint = my_vid_properties.time_range[0]
     maxt = my_vid_properties.time_range[1000]
     mytime_df = df.loc[(df["time"] >= mint) & (df["time"] <= maxt)]
     mytime_df['x_prime'] = mytime_df.apply(lambda d: proj_func_x(d['x'],d['y'],d['time']),axis=1)
     mytime_df['y_prime'] = mytime_df.apply(lambda d: proj_func_y(d['x'],d['y'],d['time']),axis=1)
-    print mytime_df
+    #print mytime_df
     return mytime_df
-    
+
+def calc_proj_list(x_list,y_list,t_list):
+    xproj_list = [proj_func_x(x,y,t) for x,y,t in zip(x_list,y_list,t_list)]
+    yproj_list = [proj_func_y(x,y,t) for x,y,t in zip(x_list,y_list,t_list)]
+    return xproj_list,yproj_list
+
 def update(val):
     global hz, hy, hx, theta
     hx = hx_slider.val
@@ -48,12 +57,31 @@ def update(val):
     hz = hz_slider.val
     theta = theta_slider.val
 
-    mytime_df = display_frames_stack(df,my_vid_properties)
+    
+    w = my_vid_properties.width
+    h = my_vid_properties.height
+    tmin = my_vid_properties.time_range[0]
+    tmax = my_vid_properties.time_range[1000] #make this variable
+    #x_list = [0,0,w,w,0,  0, 0,0,0, w,w,w, w,w,w, 0,0]
+    #y_list = [0,h,h,0,0,  0, h,h,h h,h,h, 0,0,0, 0,0]
+    #t_list = [tmin,tmin,tmin,tmin,tmin,
+              #tmax, tmax,tmin,tmax, tmax,tmin,tmax, tmax,tmin,tmax, tmax,tmin]
+    x_list = [0,0,w,w,0,  0, 0, w, w, 0]
+    y_list = [0,h,h,0,0,  0, h, h, 0, 0]
+    t_list = [tmin,tmin,tmin,tmin,tmin, tmax,tmax,tmax,tmax,tmax]
+    xproj_list,yproj_list = calc_proj_list(x_list,y_list,t_list)
+    box.set_ydata(yproj_list)
+    box.set_xdata(xproj_list)
+    print xproj_list
+    ax.set_ylim([min(yproj_list),max(yproj_list)])
+    ax.set_xlim([min(xproj_list),max(xproj_list)])
+    
+    #mytime_df = display_frames_stack(df,my_vid_properties)
     #print(mytime_df)
-    x = mytime_df["x_prime"].tolist()
-    y = mytime_df["y_prime"].tolist()
-    xx = np.vstack((x,y))
-    l.set_offsets(xx.T) 
+    #x = mytime_df["x_prime"].tolist()
+    #y = mytime_df["y_prime"].tolist()
+    #xx = np.vstack((x,y))
+    #l.set_offsets(xx.T) 
     fig.canvas.draw_idle()
     
     
@@ -79,7 +107,7 @@ def main():
     #showing layers of frames with dif parameters
     global hz, hy, hx, theta
     # i really dont think these globals are a good idea but whatever i guess
-    global fig, ax, hx_slider, hy_slider,hz_slider,theta_slider, df, my_vid_properties, l 
+    global fig, ax, hx_slider, hy_slider,hz_slider,theta_slider, df, my_vid_properties, l , box
 
     fig,ax = plt.subplots()
     fig.subplots_adjust(left=0.25, bottom=0.25)
@@ -99,9 +127,22 @@ def main():
     hz_slider.on_changed(update)
     theta_slider.on_changed(update)
     mytime_df = display_frames_stack(df,my_vid_properties)
-    l = ax.scatter(mytime_df["x_prime"],mytime_df["y_prime"],c=mytime_df["time"])
-    ax.set_xlim = my_vid_properties.width*3
-    ax.set_ylim = my_vid_properties.height*time_range[-1]
+    #l = ax.scatter(mytime_df["x_prime"],mytime_df["y_prime"],c=mytime_df["time"])
+
+    w = my_vid_properties.width
+    h = my_vid_properties.height
+    tmin = my_vid_properties.time_range[0]
+    tmax = my_vid_properties.time_range[1000] #make this variable
+    x_list = [0,0,w,w,0,  0,0,w,w,0]
+    y_list = [0,h,h,0,0,  0,h,h,0,0]
+    t_list = [tmin,tmin,tmin,tmin,tmin,
+              tmax,tmax,tmax,tmax,tmax]
+
+    xproj_list,yproj_list = calc_proj_list(x_list,y_list,t_list)
+    ax.set_ylim([min(yproj_list),max(yproj_list)])
+    ax.set_xlim([min(xproj_list),max(xproj_list)])
+    box, = ax.plot(xproj_list,yproj_list)
+
     plt.show()
 
     
