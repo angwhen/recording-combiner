@@ -60,10 +60,10 @@ def update(val):
     # allow us to always be in bounds 
     w = my_vid_properties.width
     h = my_vid_properties.height
-    tmin = my_vid_properties.time_range[0]
-    tmax = my_vid_properties.time_range[1000] #make this variable
-    tmin = mytime_df.loc[(df["time"] ==tmin)].iloc[0]['time']
-    tmax = mytime_df.loc[(df["time"] ==tmax)].iloc[0]['time']
+    tmin = 0 #my_vid_properties.time_range[0]
+    tmax = 1000 #my_vid_properties.time_range[1000] #make this variable
+    #tmin = mytime_df.loc[(df["time"] ==tmin)].iloc[0]['time']
+    #tmax = mytime_df.loc[(df["time"] ==tmax)].iloc[0]['time']
     x_list = [0,0,w,w,0,  0, 0, w, w, 0]
     y_list = [0,h,h,0,0,  0, h, h, 0, 0]
     t_list = [tmin,tmin,tmin,tmin,tmin, tmax,tmax,tmax,tmax,tmax]
