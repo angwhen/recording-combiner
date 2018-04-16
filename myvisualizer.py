@@ -24,9 +24,7 @@ class Video_Properties:
 def proj_func_x(x,y,t):
     global hz, hy, hx, theta,my_vid_properties
     myt = np.where(my_vid_properties.time_range == t)
-    print myt
     xprime = x - (myt[0][0]+1)*(hx + (hz+1)*(cos(theta)*x-sin(theta)*y) -x) #do x10 to exxag differences in height
-    print xprime
     return xprime
 
 def proj_func_y(x,y,t):
@@ -62,26 +60,29 @@ def update(val):
     h = my_vid_properties.height
     tmin = my_vid_properties.time_range[0]
     tmax = my_vid_properties.time_range[1000] #make this variable
+    """
     #x_list = [0,0,w,w,0,  0, 0,0,0, w,w,w, w,w,w, 0,0]
     #y_list = [0,h,h,0,0,  0, h,h,h h,h,h, 0,0,0, 0,0]
     #t_list = [tmin,tmin,tmin,tmin,tmin,
               #tmax, tmax,tmin,tmax, tmax,tmin,tmax, tmax,tmin,tmax, tmax,tmin]
+    """
     x_list = [0,0,w,w,0,  0, 0, w, w, 0]
     y_list = [0,h,h,0,0,  0, h, h, 0, 0]
     t_list = [tmin,tmin,tmin,tmin,tmin, tmax,tmax,tmax,tmax,tmax]
     xproj_list,yproj_list = calc_proj_list(x_list,y_list,t_list)
-    box.set_ydata(yproj_list)
-    box.set_xdata(xproj_list)
+    #box.set_ydata(yproj_list)
+    #box.set_xdata(xproj_list)
     print xproj_list
     ax.set_ylim([min(yproj_list),max(yproj_list)])
     ax.set_xlim([min(xproj_list),max(xproj_list)])
     
-    #mytime_df = display_frames_stack(df,my_vid_properties)
+
+    mytime_df = display_frames_stack(df,my_vid_properties)
     #print(mytime_df)
-    #x = mytime_df["x_prime"].tolist()
-    #y = mytime_df["y_prime"].tolist()
-    #xx = np.vstack((x,y))
-    #l.set_offsets(xx.T) 
+    x = mytime_df["x_prime"].tolist()
+    y = mytime_df["y_prime"].tolist()
+    xx = np.vstack((x,y))
+    l.set_offsets(xx.T) 
     fig.canvas.draw_idle()
     
     
@@ -127,8 +128,9 @@ def main():
     hz_slider.on_changed(update)
     theta_slider.on_changed(update)
     mytime_df = display_frames_stack(df,my_vid_properties)
-    #l = ax.scatter(mytime_df["x_prime"],mytime_df["y_prime"],c=mytime_df["time"])
+    l = ax.scatter(mytime_df["x_prime"],mytime_df["y_prime"],c=mytime_df["time"])
 
+    """
     w = my_vid_properties.width
     h = my_vid_properties.height
     tmin = my_vid_properties.time_range[0]
@@ -142,7 +144,8 @@ def main():
     ax.set_ylim([min(yproj_list),max(yproj_list)])
     ax.set_xlim([min(xproj_list),max(xproj_list)])
     box, = ax.plot(xproj_list,yproj_list)
-
+    """
+    
     plt.show()
 
     
