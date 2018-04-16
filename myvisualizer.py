@@ -23,14 +23,14 @@ class Video_Properties:
 """ proj_func are user defined functions to calculate x' and y' on dataframe """        
 def proj_func_x(x,y,t):
     global hz, hy, hx, theta,my_vid_properties
-    myt = np.where(my_vid_properties.time_range == t)
-    xprime = x - (myt[0][0]+1)*(hx + (hz+1)*(cos(theta)*x-sin(theta)*y) -x) #do x10 to exxag differences in height
+    #myt = np.where(my_vid_properties.time_range == t)
+    xprime = x -t*(hx + (hz+1)*(cos(theta)*x-sin(theta)*y) -x) 
     return xprime
 
 def proj_func_y(x,y,t):
     global hz, hy, hx, theta,my_vid_properties
-    myt = np.where(my_vid_properties.time_range == t)
-    yprime = y - (myt[0][0]+1)*(hy + (hz+1)*(cos(theta)*x+sin(theta)*y) -y)
+    #myt = np.where(my_vid_properties.time_range == t)
+    yprime = y - t*(hy + (hz+1)*(cos(theta)*x+sin(theta)*y) -y) #(myt[0][0]+1)
     return yprime
 
 def display_frames_stack(df,my_vid_properties):
@@ -38,9 +38,8 @@ def display_frames_stack(df,my_vid_properties):
     mint = my_vid_properties.time_range[0]
     maxt = my_vid_properties.time_range[1000]
     mytime_df = df.loc[(df["time"] >= mint) & (df["time"] <= maxt)]
-    mytime_df['x_prime'] = mytime_df.apply(lambda d: proj_func_x(d['x'],d['y'],d['time']),axis=1)
-    mytime_df['y_prime'] = mytime_df.apply(lambda d: proj_func_y(d['x'],d['y'],d['time']),axis=1)
-    #print mytime_df
+    mytime_df['x_prime'] = mytime_df.apply(lambda d: proj_func_x(d['x'],d['y'],d['id']),axis=1)
+    mytime_df['y_prime'] = mytime_df.apply(lambda d: proj_func_y(d['x'],d['y'],d['id']),axis=1)
     return mytime_df
 
 def calc_proj_list(x_list,y_list,t_list):
@@ -55,29 +54,26 @@ def update(val):
     hz = hz_slider.val
     theta = theta_slider.val
 
+    mytime_df = display_frames_stack(df,my_vid_properties)
+
     
+    # allow us to always be in bounds 
     w = my_vid_properties.width
     h = my_vid_properties.height
     tmin = my_vid_properties.time_range[0]
     tmax = my_vid_properties.time_range[1000] #make this variable
-    """
-    #x_list = [0,0,w,w,0,  0, 0,0,0, w,w,w, w,w,w, 0,0]
-    #y_list = [0,h,h,0,0,  0, h,h,h h,h,h, 0,0,0, 0,0]
-    #t_list = [tmin,tmin,tmin,tmin,tmin,
-              #tmax, tmax,tmin,tmax, tmax,tmin,tmax, tmax,tmin,tmax, tmax,tmin]
-    """
+    tmin = mytime_df.loc[(df["time"] ==tmin)].iloc[0]['time']
+    tmax = mytime_df.loc[(df["time"] ==tmax)].iloc[0]['time']
     x_list = [0,0,w,w,0,  0, 0, w, w, 0]
     y_list = [0,h,h,0,0,  0, h, h, 0, 0]
     t_list = [tmin,tmin,tmin,tmin,tmin, tmax,tmax,tmax,tmax,tmax]
     xproj_list,yproj_list = calc_proj_list(x_list,y_list,t_list)
-    #box.set_ydata(yproj_list)
-    #box.set_xdata(xproj_list)
-    print xproj_list
+
     ax.set_ylim([min(yproj_list),max(yproj_list)])
     ax.set_xlim([min(xproj_list),max(xproj_list)])
     
 
-    mytime_df = display_frames_stack(df,my_vid_properties)
+    
     #print(mytime_df)
     x = mytime_df["x_prime"].tolist()
     y = mytime_df["y_prime"].tolist()
@@ -99,6 +95,8 @@ def main():
     
     df.columns = ["time","x","y","light_change"]
     df = df.drop(labels="light_change",axis=1) #remove light change data for now
+    df = df.assign(id=(df['time']).astype('category').cat.codes) #make new column id to tell time in constant growing manner
+    print df
     
     height = df['y'].max() # this is not necessarily correct .... but how else to tell?
     width = df['x'].max()
@@ -130,22 +128,6 @@ def main():
     mytime_df = display_frames_stack(df,my_vid_properties)
     l = ax.scatter(mytime_df["x_prime"],mytime_df["y_prime"],c=mytime_df["time"])
 
-    """
-    w = my_vid_properties.width
-    h = my_vid_properties.height
-    tmin = my_vid_properties.time_range[0]
-    tmax = my_vid_properties.time_range[1000] #make this variable
-    x_list = [0,0,w,w,0,  0,0,w,w,0]
-    y_list = [0,h,h,0,0,  0,h,h,0,0]
-    t_list = [tmin,tmin,tmin,tmin,tmin,
-              tmax,tmax,tmax,tmax,tmax]
-
-    xproj_list,yproj_list = calc_proj_list(x_list,y_list,t_list)
-    ax.set_ylim([min(yproj_list),max(yproj_list)])
-    ax.set_xlim([min(xproj_list),max(xproj_list)])
-    box, = ax.plot(xproj_list,yproj_list)
-    """
-    
     plt.show()
 
     
