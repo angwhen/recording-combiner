@@ -62,7 +62,7 @@ class MyVisualizer:
         self.hx_slider = Slider(hx_slider_ax, 'hx', -10.0, 10.0, valinit=self.param_dict["hx"])
         self.hy_slider = Slider(hy_slider_ax, 'hy', -50.0, 50.0, valinit=self.param_dict["hy"])
         self.hz_slider = Slider(hz_slider_ax, 'hz', -50.0, 50.0, valinit=self.param_dict["hz"])
-        self.theta_slider = Slider(theta_slider_ax, 'theta', -0.1, 7.0, valinit=self.param_dict["theta"])
+        self.theta_slider = Slider(theta_slider_ax, 'theta', -3.5, 3.5, valinit=self.param_dict["theta"])
         # update graph when slider changes
         self.hx_slider.on_changed(self.update)
         self.hy_slider.on_changed(self.update)
@@ -150,8 +150,6 @@ def main():
         mint_ind = 0
     if maxt_ind == None:
         maxt_ind = 50
-    print mint_ind
-    print maxt_ind
     
     my_visualizer = MyVisualizer(df,param_dict = {"hx":0, "hy":0, "hz":0, "theta":0}, mint_ind = mint_ind,maxt_ind = maxt_ind)
     
